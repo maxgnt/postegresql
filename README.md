@@ -379,3 +379,13 @@ JOIN customer c ON r.customer_id = c.customer_id
 WHERE f.film_id = i.film_id AND c.store_id = 1
 RETURNING f.film_id, f.title, f.rental_rate;
 ```
+
+50 contraintes au total : PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, NOT NULL.
+
+Relations :
+
+- utilisateurs -> posts (ON DELETE CASCADE)
+- categories -> posts (ON DELETE SET NULL)
+- posts -> commentaires (ON DELETE CASCADE)
+- posts <-> tags via post_tags (ON DELETE CASCADE des deux cotes)
+- commentaires -> commentaires via parent_id (auto-reference, ON DELETE CASCADE)
