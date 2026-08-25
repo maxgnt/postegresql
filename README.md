@@ -308,3 +308,28 @@ Contraintes appliquees :
 - FK post_id avec ON DELETE CASCADE : supprime les commentaires si le post est supprime
 - FK user_id avec ON DELETE RESTRICT : empeche la suppression d'un utilisateur ayant des commentaires
 - CHECK sur contenu : minimum 1 caractere apres suppression des espaces
+
+### Exercice 2.5 : Modifier la table tags avec ALTER TABLE
+
+```sql
+ALTER TABLE tags ADD COLUMN description TEXT;
+ALTER TABLE tags ADD COLUMN compteur_utilisation INTEGER DEFAULT 0 CHECK (compteur_utilisation >= 0);
+ALTER TABLE tags ADD CONSTRAINT chk_tag_nom_longueur CHECK (LENGTH(nom) >= 2);
+ALTER TABLE tags RENAME COLUMN cree_le TO date_creation;
+```
+
+Resultat apres modifications :
+
+```
+        Column        |           Type           | Nullable |               Default
+----------------------+--------------------------+----------+--------------------------------------
+ tag_id               | integer                  | not null | nextval('tags_tag_id_seq'::regclass)
+ nom                  | character varying(50)    | not null |
+ slug                 | character varying(50)    | not null |
+ date_creation        | timestamp with time zone |          | now()
+ description          | text                     |          |
+ compteur_utilisation | integer                  |          | 0
+Check constraints:
+    "chk_tag_nom_longueur" CHECK (length(nom::text) >= 2)
+    "tags_compteur_utilisation_check" CHECK (compteur_utilisation >= 0)
+```
