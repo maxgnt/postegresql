@@ -238,7 +238,6 @@ Differences avec le TP du prof :
  customer         | address_id           | address      | address_id     | CASCADE     | RESTRICT
  customer         | store_id             | store        | store_id       | CASCADE     | RESTRICT
  film             | language_id          | language     | language_id    | CASCADE     | RESTRICT
- film             | original_language_id | language     | language_id    | CASCADE     | RESTRICT
  film_actor       | actor_id             | actor        | actor_id       | CASCADE     | RESTRICT
  film_actor       | film_id              | film         | film_id        | CASCADE     | RESTRICT
  film_category    | category_id          | category     | category_id    | CASCADE     | RESTRICT
@@ -252,9 +251,60 @@ Differences avec le TP du prof :
  store            | address_id           | address      | address_id     | CASCADE     | RESTRICT
 ```
 
-Les tables de payment partitionnees utilisent NO ACTION (similaire a RESTRICT).
-
 Regles principales :
 
 - CASCADE sur UPDATE : si l'ID parent change, les enfants suivent
 - RESTRICT sur DELETE : impossible de supprimer un parent tant que des enfants existent
+
+### Exercice 2.3 : Creer la table tags
+
+```sql
+CREATE TABLE tags (
+    tag_id SERIAL PRIMARY KEY,
+    nom VARCHAR(50) NOT NULL UNIQUE,
+    slug VARCHAR(50) NOT NULL UNIQUE,
+    cree_le TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Exercice 2.4 : Creer la table commentaires avec contraintes
+
+Tables parentes creees en prerequis :
+
+```sql
+CREATE TABLE utilisateurs (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE posts (
+    post_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES utilisateurs(user_id),
+    titre VARCHAR(200) NOT NULL
+);
+```
+
+Table commentaires avec tous les types de contraintes :
+
+```sql
+CREATE TABLE commentaires (
+    comment_id SERIAL PRIMARY KEY,
+    post_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    contenu TEXT NOT NULL,
+    cree_le TIMESTAMPTZ DEFAULT NOW(),
+    modifie_le TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_commentaires_post
+        FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
+    CONSTRAINT fk_commentaires_utilisateur
+        FOREIGN KEY (user_id) REFERENCES utilisateurs(user_id) ON DELETE RESTRICT,
+    CONSTRAINT chk_contenu_non_vide
+        CHECK (LENGTH(TRIM(contenu)) >= 1)
+);
+```
+
+Contraintes appliquees :
+
+- FK post_id avec ON DELETE CASCADE : supprime les commentaires si le post est supprime
+- FK user_id avec ON DELETE RESTRICT : empeche la suppression d'un utilisateur ayant des commentaires
+- CHECK sur contenu : minimum 1 caractere apres suppression des espaces
