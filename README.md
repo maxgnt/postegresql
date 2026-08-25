@@ -389,3 +389,31 @@ Relations :
 - posts -> commentaires (ON DELETE CASCADE)
 - posts <-> tags via post_tags (ON DELETE CASCADE des deux cotes)
 - commentaires -> commentaires via parent_id (auto-reference, ON DELETE CASCADE)
+
+### Partie 10 : Requetes d'application web BlogApp
+
+Donnees de test inserees : 2 utilisateurs, 2 categories, 3 tags, 3 posts, 4 post_tags, 2 commentaires.
+
+Requete 1 - Profil utilisateur (avec statistiques via LEFT JOIN + GROUP BY + FILTER) :
+
+- Alice : 2 posts publies, 0 vues
+
+Requete 2 - Liste d'articles paginee (JOIN multiple + COUNT commentaires + LIMIT/OFFSET) :
+
+- 2 posts publies affiches avec auteur, categorie et nombre de commentaires
+
+Requete 3 - Detail du post avec tags (ARRAY_AGG pour regrouper les tags) :
+
+- Post "Debuter avec PostgreSQL" : tags {PostgreSQL, SQL}
+
+Requete 4 - Recherche de posts (ILIKE pour recherche insensible a la casse) :
+
+- Recherche "postgresql" : 2 resultats
+
+Requete 5 - Posts par categorie (INNER JOIN categories + filtre sur slug) :
+
+- Categorie "programmation" : 1 post
+
+Requete 6 - Posts par tag (INNER JOIN post_tags + tags + filtre sur slug) :
+
+- Tag "postgresql" : 2 posts
