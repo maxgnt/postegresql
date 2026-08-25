@@ -333,3 +333,49 @@ Check constraints:
     "chk_tag_nom_longueur" CHECK (length(nom::text) >= 2)
     "tags_compteur_utilisation_check" CHECK (compteur_utilisation >= 0)
 ```
+
+### Exercice 2.6 : Operations INSERT sur Pagila
+
+Insertion d'un nouveau client avec RETURNING :
+
+```sql
+INSERT INTO customer (store_id, first_name, last_name, email, address_id)
+VALUES (1, 'Max', 'Ginet', 'max.ginet@example.com', 1)
+RETURNING customer_id;
+```
+
+Resultat : customer_id = 1000
+
+Insertion de 3 films avec RETURNING :
+
+```sql
+INSERT INTO film (title, description, language_id, rental_duration, rental_rate, replacement_cost)
+VALUES
+    ('PostgreSQL Adventures', 'A thrilling database journey', 1, 7, 4.99, 19.99),
+    ('Pro SQL', 'Learn SQL the hard way', 1, 5, 3.99, 14.99),
+    ('Docker Image', 'Containers everywhere', 1, 6, 2.99, 12.99)
+RETURNING film_id, title, rental_rate;
+```
+
+Resultat : film_id 1001 a 1003
+
+### Exercice 2.7 : Operations UPDATE sur Pagila
+
+Mise a jour de l'email d'un client avec RETURNING :
+
+```sql
+UPDATE customer SET email = 'mary.smith.updated@example.com'
+WHERE customer_id = 1
+RETURNING customer_id, first_name, last_name, email;
+```
+
+Reduction de 10% du rental_rate pour les films loues par les clients du magasin 1 (UPDATE avec FROM/JOIN) :
+
+```sql
+UPDATE film f SET rental_rate = rental_rate * 0.90
+FROM inventory i
+JOIN rental r ON i.inventory_id = r.inventory_id
+JOIN customer c ON r.customer_id = c.customer_id
+WHERE f.film_id = i.film_id AND c.store_id = 1
+RETURNING f.film_id, f.title, f.rental_rate;
+```
