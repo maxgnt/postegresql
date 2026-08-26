@@ -663,3 +663,99 @@ FROM film ORDER BY length NULLS LAST LIMIT 20;
 ```
 
 NULLS LAST pour eviter que nos films sans duree (inseres au Lab 2) apparaissent en premier.
+
+### Partie 9 : Requetes d'application web BlogApp
+
+Piege du TP : les requetes utilisent des noms en anglais (users, comments, status, view_count...) mais notre schema est en francais (utilisateurs, commentaires, statut, compteur_vues...). Toutes les requetes ont ete adaptees.
+
+Requete 1 - Profil utilisateur (LEFT JOIN + GROUP BY + FILTER + COALESCE) :
+
+```sql
+SELECT u.user_id, u.username, u.email, u.prenom || ' ' || u.nom AS nom_complet,
+       u.bio, u.cree_le AS membre_depuis,
+       COUNT(DISTINCT p.post_id) AS total_posts,
+       COUNT(DISTINCT p.post_id) FILTER (WHERE p.statut = 'publie') AS posts_publies,
+       COALESCE(SUM(p.compteur_vues), 0) AS total_vues
+FROM utilisateurs u
+LEFT JOIN posts p ON u.user_id = p.user_id
+WHERE u.username = 'alice'
+GROUP BY u.user_id;
+```
+
+Resultat : Alice, 2 posts publies, 0 vues.
+
+Requete 2 - Liste de posts paginee (JOIN multiple + COUNT + LIMIT/OFFSET) :
+
+```sql
+SELECT p.post_id, p.titre, p.slug, p.extrait, p.publie_le, p.compteur_vues,
+       u.username AS auteur, c.nom AS categorie,
+       COUNT(DISTINCT cm.comment_id) AS nombre_commentaires
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+LEFT JOIN categories c ON p.category_id = c.category_id
+LEFT JOIN commentaires cm ON p.post_id = cm.post_id
+WHERE p.statut = 'publie' AND p.publie_le <= NOW()
+GROUP BY p.post_id, p.titre, p.slug, p.extrait, p.publie_le,
+         p.compteur_vues, u.username, c.nom
+ORDER BY p.publie_le DESC
+LIMIT 10 OFFSET 0;
+```
+
+Resultat : 2 posts publies avec auteur, categorie et nombre de commentaires.
+
+Requete 3 - Detail du post avec tags (ARRAY_AGG) :
+
+```sql
+SELECT p.post_id, p.titre, p.contenu, p.publie_le, p.compteur_vues,
+       u.username AS auteur, u.prenom || ' ' || u.nom AS nom_complet_auteur,
+       c.nom AS categorie, ARRAY_AGG(DISTINCT t.nom) AS tags
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+LEFT JOIN categories c ON p.category_id = c.category_id
+LEFT JOIN post_tags pt ON p.post_id = pt.post_id
+LEFT JOIN tags t ON pt.tag_id = t.tag_id
+WHERE p.slug = 'getting-started-postgresql' AND p.statut = 'publie'
+GROUP BY p.post_id, u.user_id, c.nom;
+```
+
+Resultat : post avec tags {PostgreSQL, SQL}.
+
+Requete 4 - Recherche de posts (ILIKE) :
+
+```sql
+SELECT p.post_id, p.titre, p.slug, p.extrait, u.username AS auteur, p.publie_le
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+WHERE p.statut = 'publie'
+AND (p.titre ILIKE '%postgresql%' OR p.contenu ILIKE '%postgresql%')
+ORDER BY p.publie_le DESC LIMIT 20;
+```
+
+Resultat : 2 posts contenant "postgresql".
+
+Requete 5 - Posts par categorie :
+
+```sql
+SELECT p.post_id, p.titre, p.slug, p.extrait, p.publie_le, u.username AS auteur
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+INNER JOIN categories c ON p.category_id = c.category_id
+WHERE c.slug = 'programmation' AND p.statut = 'publie'
+ORDER BY p.publie_le DESC LIMIT 20;
+```
+
+Resultat : 1 post dans la categorie "programmation".
+
+Requete 6 - Posts par tag :
+
+```sql
+SELECT p.post_id, p.titre, p.slug, p.extrait, p.publie_le, u.username AS auteur
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+INNER JOIN post_tags pt ON p.post_id = pt.post_id
+INNER JOIN tags t ON pt.tag_id = t.tag_id
+WHERE t.slug = 'postgresql' AND p.statut = 'publie'
+ORDER BY p.publie_le DESC LIMIT 20;
+```
+
+Resultat : 2 posts avec le tag "postgresql".
