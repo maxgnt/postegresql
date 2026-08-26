@@ -493,7 +493,7 @@ ORDER BY last_name
 LIMIT 20 OFFSET 40;
 ```
 
-Formule de pagination : OFFSET = (numero_page - 1) _ taille_page → (3-1) _ 20 = 40.
+Formule de pagination : OFFSET = (numero*page - 1) * taille*page → (3-1) * 20 = 40.
 
 Tache 3 - Les 5 films les plus longs sauf le premier :
 
@@ -504,3 +504,41 @@ LIMIT 5 OFFSET 1;
 ```
 
 Note : NULLS LAST necessaire car nos films inseres au Lab 2 ont un length NULL, et PostgreSQL place les NULL en premier avec DESC par defaut. Resultat : 5 films a 185 minutes.
+
+### Exercice 3.4 : INNER JOIN
+
+Tache 1 - Films avec leurs categories :
+
+```sql
+SELECT f.title, c.name AS category
+FROM film f
+JOIN film_category fc ON f.film_id = fc.film_id
+JOIN category c ON fc.category_id = c.category_id
+ORDER BY f.title LIMIT 20;
+```
+
+Note : dans cette version de Pagila, un film peut avoir plusieurs categories, ce qui genere des doublons dans les resultats (relation many-to-many).
+
+Tache 2 - Paiements de Mary Smith :
+
+```sql
+SELECT c.first_name || ' ' || c.last_name AS full_name, p.payment_date, p.amount
+FROM customer c
+JOIN payment p ON c.customer_id = p.customer_id
+WHERE c.first_name = 'MARY' AND c.last_name = 'SMITH'
+ORDER BY p.payment_date LIMIT 20;
+```
+
+Resultat : 12 paiements entre 2024 et 2026.
+
+Tache 3 - Films avec acteurs et categories (jointure 3 voies) :
+
+```sql
+SELECT f.title, a.first_name || ' ' || a.last_name AS actor_name, c.name AS category
+FROM film f
+JOIN film_actor fa ON f.film_id = fa.film_id
+JOIN actor a ON fa.actor_id = a.actor_id
+JOIN film_category fc ON f.film_id = fc.film_id
+JOIN category c ON fc.category_id = c.category_id
+ORDER BY f.title LIMIT 20;
+```
