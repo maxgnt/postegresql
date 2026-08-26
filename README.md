@@ -588,3 +588,42 @@ SELECT COUNT(DISTINCT customer_id) AS clients_distincts FROM payment;
 ```
 
 Resultat : 997 clients distincts.
+
+### Exercice 3.7 : GROUP BY et HAVING
+
+Tache 1 - Films par categorie :
+
+```sql
+SELECT c.name AS category, COUNT(fc.film_id) AS film_count
+FROM category c
+JOIN film_category fc ON c.category_id = fc.category_id
+GROUP BY c.name
+ORDER BY film_count DESC;
+```
+
+Resultat : 16 categories, de 142 (Horror) a 152 (Drama) films.
+
+Tache 2 - Acteurs ayant joue dans plus de 30 films (HAVING) :
+
+```sql
+SELECT a.first_name || ' ' || a.last_name AS actor_name, COUNT(fa.film_id) AS film_count
+FROM actor a
+JOIN film_actor fa ON a.actor_id = fa.actor_id
+GROUP BY a.actor_id, a.first_name, a.last_name
+HAVING COUNT(fa.film_id) > 30
+ORDER BY film_count DESC;
+```
+
+Resultat : 56 acteurs, Gina Degeneres en tete avec 42 films.
+
+Tache 3 - Revenus mensuels (DATE_TRUNC) :
+
+```sql
+SELECT DATE_TRUNC('month', payment_date) AS mois, SUM(amount) AS revenu_total
+FROM payment
+GROUP BY DATE_TRUNC('month', payment_date)
+ORDER BY mois;
+```
+
+Note : le TP dit "pour 2007" mais les donnees Pagila sont de 2024-2026.
+Resultat : 24 mois de revenus, d'aout 2024 a juillet 2026.
