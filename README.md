@@ -542,3 +542,49 @@ JOIN film_category fc ON f.film_id = fc.film_id
 JOIN category c ON fc.category_id = c.category_id
 ORDER BY f.title LIMIT 20;
 ```
+
+### Exercice 3.5 : JOINs externes
+
+Tache 1 - Acteurs sans film (LEFT JOIN + IS NULL) :
+
+```sql
+SELECT a.actor_id, a.first_name, a.last_name
+FROM actor a
+LEFT JOIN film_actor fa ON a.actor_id = fa.actor_id
+WHERE fa.film_id IS NULL;
+```
+
+Resultat : 0 acteurs sans film, tous les acteurs ont au moins un role.
+
+Tache 2 - Categories avec nombre de films (y compris 0) :
+
+```sql
+SELECT c.name AS category, COUNT(fc.film_id) AS film_count
+FROM category c
+LEFT JOIN film_category fc ON c.category_id = fc.category_id
+GROUP BY c.name
+ORDER BY film_count DESC;
+```
+
+Resultat : 16 categories, de 142 (Horror) a 152 (Drama) films.
+
+### Exercice 3.6 : Fonctions d'agregation
+
+Tache 1 - Statistiques des paiements :
+
+```sql
+SELECT COUNT(*) AS total_paiements, ROUND(AVG(amount), 2) AS moyenne,
+       MIN(amount) AS minimum, MAX(amount) AS maximum
+FROM payment;
+```
+
+Resultat : 17107 paiements, moyenne 2.95, min 0.99, max 4.99.
+Note : total reduit car 33954 paiements supprimes lors de l'archivage au Lab 2.
+
+Tache 2 - Clients distincts ayant paye :
+
+```sql
+SELECT COUNT(DISTINCT customer_id) AS clients_distincts FROM payment;
+```
+
+Resultat : 997 clients distincts.
