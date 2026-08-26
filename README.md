@@ -474,3 +474,33 @@ ORDER BY length;
 ```
 
 Resultat : 71 films.
+
+### Exercice 3.3 : Tri et pagination
+
+Tache 1 - Les 10 films les plus chers :
+
+```sql
+SELECT title, rental_rate FROM film ORDER BY rental_rate DESC LIMIT 10;
+```
+
+Resultat : 10 films a 4.99.
+
+Tache 2 - Page 3 des clients (20 par page) tries par nom :
+
+```sql
+SELECT first_name, last_name FROM customer
+ORDER BY last_name
+LIMIT 20 OFFSET 40;
+```
+
+Formule de pagination : OFFSET = (numero_page - 1) _ taille_page → (3-1) _ 20 = 40.
+
+Tache 3 - Les 5 films les plus longs sauf le premier :
+
+```sql
+SELECT title, length FROM film
+ORDER BY length DESC NULLS LAST
+LIMIT 5 OFFSET 1;
+```
+
+Note : NULLS LAST necessaire car nos films inseres au Lab 2 ont un length NULL, et PostgreSQL place les NULL en premier avec DESC par defaut. Resultat : 5 films a 185 minutes.
