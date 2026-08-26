@@ -627,3 +627,39 @@ ORDER BY mois;
 
 Note : le TP dit "pour 2007" mais les donnees Pagila sont de 2024-2026.
 Resultat : 24 mois de revenus, d'aout 2024 a juillet 2026.
+
+### Exercice 3.8 : Fonctions integrees
+
+Tache 1 - Formatage des noms et emails (concatenation + UPPER) :
+
+```sql
+SELECT last_name || ', ' || first_name || ' (' || UPPER(email) || ')' AS formatted
+FROM customer LIMIT 10;
+```
+
+Resultat : format "NOM, Prenom (EMAIL@MAJUSCULE)".
+
+Tache 2 - Duree de location en jours (EXTRACT + COALESCE) :
+
+```sql
+SELECT rental_id, rental_date, return_date,
+       EXTRACT(DAY FROM COALESCE(return_date, NOW()) - rental_date) AS duree_jours
+FROM rental LIMIT 10;
+```
+
+COALESCE gere les locations non retournees (return_date NULL) en utilisant NOW() a la place.
+
+Tache 3 - Categoriser les films par duree (CASE) :
+
+```sql
+SELECT title, length,
+       CASE
+           WHEN length < 90 THEN 'Court'
+           WHEN length BETWEEN 90 AND 120 THEN 'Moyen'
+           WHEN length > 120 THEN 'Long'
+           ELSE 'Inconnu'
+       END AS categorie_duree
+FROM film ORDER BY length NULLS LAST LIMIT 20;
+```
+
+NULLS LAST pour eviter que nos films sans duree (inseres au Lab 2) apparaissent en premier.
