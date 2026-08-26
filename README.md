@@ -417,3 +417,60 @@ Requete 5 - Posts par categorie (INNER JOIN categories + filtre sur slug) :
 Requete 6 - Posts par tag (INNER JOIN post_tags + tags + filtre sur slug) :
 
 - Tag "postgresql" : 2 posts
+
+## Lab 03 - Requetes de base : SELECT, JOINs et Agregations
+
+### Exercice 3.1 : SELECT de base
+
+Tache 1 - Films avec titre, annee et tarif :
+
+```sql
+SELECT title, release_year, rental_rate FROM film LIMIT 10;
+```
+
+Tache 2 - Clients avec nom complet et email en majuscules :
+
+```sql
+SELECT first_name || ' ' || last_name AS full_name, UPPER(email) AS email_upper FROM customer LIMIT 10;
+```
+
+Tache 3 - Classifications uniques :
+
+```sql
+SELECT DISTINCT rating FROM film;
+```
+
+Resultat : 5 classifications (G, PG, PG-13, R, NC-17).
+
+### Exercice 3.2 : Clause WHERE
+
+Tache 1 - Films classes 'R' avec tarif > 3.00 :
+
+```sql
+SELECT title, rating, rental_rate FROM film
+WHERE rating = 'R' AND rental_rate > 3.00
+ORDER BY rental_rate DESC;
+```
+
+Resultat : 65 films.
+
+Tache 2 - Clients dont le nom commence par 'S' (ILIKE pour insensibilite a la casse) :
+
+```sql
+SELECT first_name, last_name FROM customer
+WHERE last_name ILIKE 's%'
+ORDER BY last_name;
+```
+
+Resultat : 85 clients.
+
+Tache 3 - Films entre 100 et 120 minutes, classes 'PG-13' ou 'R' :
+
+```sql
+SELECT title, length, rating FROM film
+WHERE length BETWEEN 100 AND 120
+AND rating IN ('PG-13', 'R')
+ORDER BY length;
+```
+
+Resultat : 71 films.
