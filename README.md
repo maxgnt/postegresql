@@ -759,3 +759,88 @@ ORDER BY p.publie_le DESC LIMIT 20;
 ```
 
 Resultat : 2 posts avec le tag "postgresql".
+
+### Partie 10 : Requetes analytiques BlogApp
+
+Requetes de tableau de bord pour le panneau d'administration BlogApp.
+
+Analytique 1 - KPIs du site (sous-requetes scalaires) :
+
+```sql
+SELECT
+    (SELECT COUNT(*) FROM utilisateurs WHERE est_actif = TRUE) AS total_users,
+    (SELECT COUNT(*) FROM posts WHERE statut = 'publie') AS published_posts,
+    (SELECT COUNT(*) FROM posts WHERE statut = 'brouillon') AS draft_posts,
+    (SELECT COUNT(*) FROM commentaires WHERE est_approuve = TRUE) AS approved_comments,
+    (SELECT COALESCE(SUM(compteur_vues), 0) FROM posts) AS total_views,
+    (SELECT COUNT(DISTINCT user_id) FROM posts WHERE cree_le > CURRENT_DATE - INTERVAL '30 days') AS active_authors_30d;
+```
+
+Resultat : 2 utilisateurs actifs, 2 posts publies, 1 brouillon, 2 commentaires approuves, 0 vues, 1 auteur actif sur 30 jours.
+
+Analytique 2 - Meilleurs auteurs (GROUP BY + agregations multiples) :
+
+```sql
+SELECT u.user_id, u.username, COUNT(p.post_id) AS published_posts,
+       SUM(p.compteur_vues) AS total_views, AVG(p.compteur_vues) AS avg_views_per_post,
+       MAX(p.publie_le) AS last_published
+FROM utilisateurs u
+INNER JOIN posts p ON u.user_id = p.user_id
+WHERE p.statut = 'publie'
+GROUP BY u.user_id, u.username
+ORDER BY published_posts DESC, total_views DESC LIMIT 10;
+```
+
+Resultat : Alice en tete avec 2 posts publies, 0 vues.
+
+Analytique 3 - Performance des posts (LEFT JOIN commentaires + COUNT) :
+
+```sql
+SELECT p.post_id, p.titre, u.username AS author, p.compteur_vues,
+       COUNT(c.comment_id) AS comment_count, p.publie_le
+FROM posts p
+INNER JOIN utilisateurs u ON p.user_id = u.user_id
+LEFT JOIN commentaires c ON p.post_id = c.post_id
+WHERE p.statut = 'publie'
+GROUP BY p.post_id, p.titre, u.username, p.compteur_vues, p.publie_le
+ORDER BY p.compteur_vues DESC LIMIT 20;
+```
+
+Resultat : 2 posts, "Debuter avec PostgreSQL" avec 2 commentaires, "Docker et PostgreSQL" avec 0.
+
+Analytique 4 - Distribution des categories (pourcentage + NULLIF) :
+
+```sql
+SELECT c.nom AS category, COUNT(p.post_id) AS post_count,
+       ROUND(100.0 * COUNT(p.post_id) / NULLIF((SELECT COUNT(*) FROM posts WHERE statut = 'publie'), 0), 2) AS percentage
+FROM categories c
+LEFT JOIN posts p ON c.category_id = p.category_id AND p.statut = 'publie'
+GROUP BY c.nom
+ORDER BY post_count DESC;
+```
+
+Resultat : Base de donnees 50%, Programmation 50%.
+
+Analytique 5 - Posts au fil du temps (serie temporelle avec DATE_TRUNC) :
+
+```sql
+SELECT DATE_TRUNC('month', publie_le) AS month, COUNT(*) AS post_count
+FROM posts
+WHERE statut = 'publie' AND publie_le >= CURRENT_DATE - INTERVAL '12 months'
+GROUP BY DATE_TRUNC('month', publie_le)
+ORDER BY month;
+```
+
+Resultat : 2 posts en aout 2026.
+
+Analytique 6 - Popularite des tags (LEFT JOIN post_tags) :
+
+```sql
+SELECT t.nom AS tag, COUNT(pt.post_id) AS usage_count, t.compteur_utilisation
+FROM tags t
+LEFT JOIN post_tags pt ON t.tag_id = pt.tag_id
+GROUP BY t.tag_id, t.nom, t.compteur_utilisation
+ORDER BY usage_count DESC LIMIT 30;
+```
+
+Resultat : PostgreSQL (2 utilisations), Docker (1), SQL (1).
